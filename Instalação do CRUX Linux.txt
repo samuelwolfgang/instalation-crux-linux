@@ -1,0 +1,69 @@
+# Handbook Official
+# https://crux.nu/Main/Handbook3-7
+
+# Criando as particoes
+fdisk /dev/sd?
+mkfs.???? /dev/sd??
+mkswap /dev/sd??
+
+# Montando as particoes
+mount /dev/sd?? /mnt
+
+# Se tiver particao a mais
+#mkdir /mnt/var
+#mount /dev/sd?? /mnt/var
+
+# Ativando a swap
+swapon /dev/sd??
+
+# Instala os pacotes utilizando com 'setup'
+
+# Compilacao basica do kernel com o setup-chroot
+mount --bind /dev /mnt/dev
+mount --bind /tmp /mnt/tmp
+mount --bind /run /mnt/run
+mount -t proc proc /mnt/proc
+mount -t sysfs none /mnt/sys
+mount -t devpts -o noexec,nosuid,gid=tty,mode=0620 devpts /mnt/dev/pts
+chroot /mnt /bin/bash
+
+# Altera a senha com o 'passwd'
+
+# Configurar o '/etc/fstab'
+# dev> mountpoint>         type> options> dump> pass>
+[..]
+devpts  /dev/pts      devpts noexec,nosuid,gid=tty,mode=0620  0      0
+
+# Configurar a font, teclado, timezone e os servicos
+nano /etc/rc.conf{
+	# Diretorio das fontes '/usr/share/kbd/consolefonts/'
+	FONT=default
+	# Diretorio dos mapas de teclado '/usr/share/kbd/keymaps/'
+	KEYMAP=br-abnt2
+	# Diretorio das timeszones '/usr/share/zoneinfo/'
+	TIMEZONE=America/Bahia
+	HOSTNAME=lpf
+	SYSLOG=sysklogd
+	SERVICES=(crond lo net sshd)
+}
+# Generating locales
+/etc/locale.gen
+/usr/sbin/locale-gen
+pkgadd -u
+
+# Configurar a rede 
+nano /etc/rc.d/net
+nano /etc/hosts
+nano /etc/resolv.conf
+
+# Compilar o kernel
+cd /usr/src/linux-5.15.55
+make menuconfig
+make all
+make modules_install
+cp arch/x86/boot/bzImage /boot/vmlinuz-5.15.55
+cp System.map /boot
+
+# Instalar o grub2
+grub-install /dev/sda
+grub-mkconfig > /boot/grub/grub.cfg
